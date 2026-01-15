@@ -500,15 +500,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const payload = buildPayload();
 
       // CORS-proof: send request, don't read response
-    await fetch("/submit", {
+    const res = await fetch("/submit", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(payload)
 });
 
+let data = {};
+try { data = await res.json(); } catch {}
 
-      setMsg("Submitted. You legend.", "ok");
-      showStep(5);
+if (!res.ok || !data.success) {
+  throw new Error(data.error || `Submit failed (HTTP ${res.status})`);
+}
+
+setMsg("Submitted. You legend.", "ok");
+showStep(5);
+
     } catch (err) {
       setMsg(err.message || "Something went wrong.", "error");
       nextBtn.disabled = false;
