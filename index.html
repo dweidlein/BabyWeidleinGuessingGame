@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Baby Guessing Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    :root {
+      --bg: #050816;
+      --card: rgba(15, 23, 42, 0.96);
+      --border: rgba(148, 163, 184, 0.35);
+      --muted: #9ca3af;
+      --text: #f9fafb;
+      --indigo: #a5b4fc;
+      --indigo2: #c7d2fe;
+      --shadow: rgba(0,0,0,0.6);
+      --danger: #f97373;
+      --ok: #22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      padding: 22px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--indigo2);
+    }
+
+    .sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 20px 40px var(--shadow);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .progress-wrap {
+      flex: 1;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .step-pill {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(165,180,252,0.45);
+      color: var(--indigo2);
+      background: rgba(165,180,252,0.10);
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      opacity: 0.95;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .progress {
+      width: 100%;
+      height: 10px;
+      background: rgba(148, 163, 184, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: rgba(165, 180, 252, 0.75);
+      border-radius: 999px;
+      transition: width 360ms ease;
+    }
+
+    .content {
+      padding: 18px 16px 16px;
+    }
+
+    .qwrap {
+      position: relative;
+      min-height: 220px;
+    }
+
+    .qcard {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity 260ms ease, transform 260ms ease;
+    }
+
+    .qcard.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .qtitle {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--indigo2);
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .qdesc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(2, 6, 23, 0.6);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: rgba(156, 163, 175, 0.8);
+    }
+
+    input:focus, select:focus {
+      border-color: rgba(165, 180, 252, 0.65);
+      box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.14);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 520px) {
+      .row { grid-template-columns: 1fr; }
+      .qwrap { min-height: 260px; }
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+    }
+
+    .btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid rgba(165,180,252,0.5);
+      background: rgba(165,180,252,0.15);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      transition: transform 80ms ease, background 120ms ease, border-color 120ms ease, opacity 120ms ease;
+      user-select: none;
+    }
+
+    button:active { transform: translateY(1px); }
+    button:hover { border-color: rgba(165,180,252,0.75); background: rgba(165,180,252,0.20); }
+
+    button.secondary {
+      border-color: rgba(148,163,184,0.35);
+      background: rgba(148,163,184,0.08);
+      font-weight: 650;
+      color: #e5e7eb;
+    }
+
+    button.secondary:hover {
+      border-color: rgba(148,163,184,0.55);
+      background: rgba(148,163,184,0.12);
+    }
+
+    button.danger {
+      border-color: rgba(248,113,113,0.55);
+      background: rgba(248,113,113,0.12);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .msg {
+      font-size: 0.85rem;
+      color: var(--muted);
+      min-height: 1.2em;
+    }
+
+    .msg.error { color: var(--danger); }
+    .msg.ok { color: var(--ok); }
+
+    .footer-note {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: rgba(156, 163, 175, 0.8);
+      text-align: center;
+      padding: 0 10px 14px;
+    }
+
+    /* Success screen vibe */
+    .big {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--indigo2);
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .spark {
+      display: inline-block;
+      filter: drop-shadow(0 0 10px rgba(165, 180, 252, 0.55));
+      animation: sparkPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes sparkPulse {
+      0%, 100% { transform: translateY(0); opacity: 0.9; }
+      50% { transform: translateY(-1px); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div>
+        <div class="title">BABY GUESSING GAME</div>
+        <div class="sub">Five questions. One tiny human. Massive bragging rights.</div>
+      </div>
+      <div class="step-pill" id="topStatus">Not submitted</div>
+    </div>
+
+    <div class="card">
+      <div class="topbar">
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <div class="step-pill" id="stepLabel">Step 1/5</div>
+            <div class="hint" id="kbdHint">Tip: press Enter →</div>
+          </div>
+          <div class="progress">
+            <div class="bar" id="bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="qwrap" id="qwrap">
+          <!-- Step 1 -->
+          <div class="qcard active" data-step="0">
+            <div class="qtitle">1) Your name</div>
+            <div class="qdesc">So we know who to crown when you’re wildly correct (or confidently wrong).</div>
+            <div class="field">
+              <input id="name" type="text" autocomplete="name" placeholder="e.g. Alex / Jordan / Beyoncé" />
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="qcard" data-step="1">
+            <div class="qtitle">2) What date will the baby be born?</div>
+            <div class="qdesc">Any format is fine. If you want to be tidy, use YYYY-MM-DD.</div>
+            <div class="field">
+              <input id="birthDate" type="date" />
+              <div class="qdesc" style="margin-top:6px;">(If your browser hates the date picker, type it in manually.)</div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="qcard" data-step="2">
+            <div class="qtitle">3) What time will the baby be born?</div>
+            <div class="qdesc">We’ll accept either 24-hour or AM/PM — we’re not monsters.</div>
+            <div class="field">
+              <input id="birthTime" type="time" />
+              <div class="qdesc" style="margin-top:6px;">(If you prefer, type “3:42 AM” in the field.)</div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="qcard" data-step="3">
+            <div class="qtitle">4) How much will the baby weigh?</div>
+            <div class="qdesc">Examples: “7 lb 4 oz”, “3.2 kg”, “heavy with destiny”.</div>
+            <div class="field">
+              <input id="weight" type="text" placeholder="e.g. 7 lb 4 oz" />
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="qcard" data-step="4">
+            <div class="qtitle">5) How long will the baby be?</div>
+            <div class="qdesc">Examples: “20.5 in” or “52 cm”. Precision welcomed, chaos tolerated.</div>
+            <div class="field">
+              <input id="length" type="text" placeholder="e.g. 20.5 in" />
+            </div>
+          </div>
+
+          <!-- Success -->
+          <div class="qcard" data-step="5">
+            <div class="big">Submitted <span class="spark">✨</span></div>
+            <div class="muted">
+              Your guesses have been recorded. If you nailed this perfectly, please practice saying:
+              <br><br>
+              <strong>“I told you so”</strong>
+              <br><br>
+              (Kindly. With love. Or not. Your choice.)
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <div class="msg" id="msg"></div>
+          <div class="btns">
+            <button class="secondary" id="backBtn" type="button">Back</button>
+            <button id="nextBtn" type="button">Next</button>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          Your submission is appended to a Google Sheet. Don’t submit 40 times unless you’re auditioning for “Most Chaotic Guest.”
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    const ENDPOINT = const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzstyMoUJN_uHKvpeGA0hrPzhIjB4YKjD_kPLJLfbJnbDkba3S6MOwSbUuOaE9_eFH_A/exec";
+ // <-- paste your /exec URL
+    const SECRET = ""; // optional: set if your Apps Script checks data.secret
+
+    // === UI STATE ===
+    const steps = Array.from(document.querySelectorAll(".qcard"));
+    const bar = document.getElementById("bar");
+    const stepLabel = document.getElementById("stepLabel");
+    const msg = document.getElementById("msg");
+    const nextBtn = document.getElementById("nextBtn");
+    const backBtn = document.getElementById("backBtn");
+    const topStatus = document.getElementById("topStatus");
+    const kbdHint = document.getElementById("kbdHint");
+
+    const totalSteps = 5; // questions only (not counting success screen)
+    let idx = 0;
+    let isSubmitting = false;
+
+    // Inputs
+    const elName = document.getElementById("name");
+    const elBirthDate = document.getElementById("birthDate");
+    const elBirthTime = document.getElementById("birthTime");
+    const elWeight = document.getElementById("weight");
+    const elLength = document.getElementById("length");
+
+    function setMsg(text, kind = "") {
+      msg.className = "msg" + (kind ? " " + kind : "");
+      msg.textContent = text || "";
+    }
+
+    function setProgress() {
+      const shownStep = Math.min(idx + 1, totalSteps);
+      const pct = Math.max(0, Math.min(100, (idx / totalSteps) * 100));
+      bar.style.width = pct + "%";
+      stepLabel.textContent = (idx <= totalSteps - 1) ? `Step ${shownStep}/${totalSteps}` : "Done";
+      topStatus.textContent = (idx <= totalSteps - 1) ? "Not submitted" : "Submitted";
+      kbdHint.style.opacity = (idx <= totalSteps - 1) ? "1" : "0";
+    }
+
+    function showStep(newIdx) {
+      steps.forEach(s => s.classList.remove("active"));
+      idx = newIdx;
+      const active = steps.find(s => Number(s.dataset.step) === idx);
+      if (active) active.classList.add("active");
+
+      // Buttons
+      backBtn.disabled = (idx === 0 || idx > totalSteps - 1 || isSubmitting);
+      nextBtn.disabled = (idx > totalSteps - 1 || isSubmitting);
+
+      nextBtn.textContent = (idx === totalSteps - 1) ? "Submit" : "Next";
+      setProgress();
+      setMsg("");
+
+      // Focus the relevant input
+      setTimeout(() => {
+        if (idx === 0) elName?.focus();
+        if (idx === 1) elBirthDate?.focus();
+        if (idx === 2) elBirthTime?.focus();
+        if (idx === 3) elWeight?.focus();
+        if (idx === 4) elLength?.focus();
+      }, 20);
+    }
+
+    function normalizeDate(v) {
+      // date input returns YYYY-MM-DD; if blank allow blank
+      return (v || "").trim();
+    }
+
+    function normalizeTime(v) {
+      // time input returns HH:MM; if user typed text, keep as-is
+      return (v || "").trim();
+    }
+
+    function validateStep(i) {
+      // keep it friendly: require name, everything else required (since it’s a guessing form)
+      if (i === 0) {
+        const v = (elName.value || "").trim();
+        if (!v) return "Please enter your name.";
+        return "";
+      }
+      if (i === 1) {
+        const v = normalizeDate(elBirthDate.value);
+        if (!v) return "Please enter a birth date guess.";
+        return "";
+      }
+      if (i === 2) {
+        const v = normalizeTime(elBirthTime.value);
+        if (!v) return "Please enter a birth time guess.";
+        return "";
+      }
+      if (i === 3) {
+        const v = (elWeight.value || "").trim();
+        if (!v) return "Please enter a weight guess.";
+        return "";
+      }
+      if (i === 4) {
+        const v = (elLength.value || "").trim();
+        if (!v) return "Please enter a length guess.";
+        return "";
+      }
+      return "";
+    }
+
+    function buildPayload() {
+      const payload = {
+        name: (elName.value || "").trim(),
+        birthDate: normalizeDate(elBirthDate.value),
+        birthTime: normalizeTime(elBirthTime.value),
+        weight: (elWeight.value || "").trim(),
+        length: (elLength.value || "").trim()
+      };
+      if (SECRET) payload.secret = SECRET;
+      return payload;
+    }
+
+    async function submit() {
+      if (isSubmitting) return;
+      isSubmitting = true;
+      backBtn.disabled = true;
+      nextBtn.disabled = true;
+      nextBtn.textContent = "Submitting…";
+      setMsg("Sending your guesses…", "");
+
+      try {
+        if (!ENDPOINT || ENDPOINT.includes("YOUR_APPS_SCRIPT_WEB_APP_URL_HERE")) {
+          throw new Error("You haven’t set your Apps Script endpoint URL yet.");
+        }
+
+        const payload = buildPayload();
+
+        const res = await fetch(ENDPOINT, {
+  method: "POST",
+  mode: "no-cors",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+// With no-cors, we can't read the response body — but the request was sent.
+setMsg("Submitted. You legend.", "ok");
+showStep(5);
+topStatus.textContent = "Submitted";
+
+
+        // Apps Script sometimes returns 200 with text; handle both
+        const text = await res.text();
+        let data = null;
+        try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+        if (!res.ok) {
+          throw new Error((data && data.error) ? data.error : ("HTTP " + res.status));
+        }
+        if (data && data.success === false) {
+          throw new Error(data.error || "Submission failed.");
+        }
+
+        setMsg("Submitted. You legend.", "ok");
+        showStep(5); // success screen
+        topStatus.textContent = "Submitted";
+
+      } catch (err) {
+        setMsg(err.message || "Something went wrong.", "error");
+        nextBtn.disabled = false;
+        backBtn.disabled = (idx === 0);
+        nextBtn.textContent = "Submit";
+      } finally {
+        isSubmitting = false;
+      }
+    }
+
+    function next() {
+      if (idx >= totalSteps) return;
+      const err = validateStep(idx);
+      if (err) return setMsg(err, "error");
+
+      if (idx === totalSteps - 1) {
+        submit();
+      } else {
+        showStep(idx + 1);
+      }
+    }
+
+    function back() {
+      if (idx <= 0) return;
+      showStep(idx - 1);
+    }
+
+    nextBtn.addEventListener("click", next);
+    backBtn.addEventListener("click", back);
+
+    // Enter key: advance (Shift+Enter for newline if we ever add textareas)
+    document.addEventListener("keydown", (e) => {
+      if (idx > totalSteps - 1) return; // success screen
+      if (e.key === "Enter") {
+        e.preventDefault();
+        next();
+      }
+    });
+
+    // Init
+    showStep(0);
+  </script>
+</body>
+</html>
