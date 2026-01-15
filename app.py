@@ -3,8 +3,8 @@ import requests
 
 app = Flask(__name__)
 
-APPS_SCRIPT_URL = "APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtbdSamZHit2-wiwDz9L4bMcb8kFporSJEe-6FsVLegZCcK2SXJEx2K8gGgS9c_OLtDw/exec"
-"
+APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwtbdSamZHit2-wiwDz9L4bMcb8kFporSJEe-6FsVLegZCcK2SXJEx2K8gGgS9c_OLtDw/exec"
+
 
 @app.get("/")
 def home():
