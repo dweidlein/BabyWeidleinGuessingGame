@@ -500,12 +500,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const payload = buildPayload();
 
       // CORS-proof: send request, don't read response
-      await fetch(ENDPOINT, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    await fetch("/submit", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
 
       setMsg("Submitted. You legend.", "ok");
       showStep(5);
