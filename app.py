@@ -1,13 +1,50 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+import requests
 
 app = Flask(__name__)
+
+APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzstyMoUJN_uHKvpeGA0hrPzhIjB4YKjD_kPLJLfbJnbDkba3S6MOwSbUuOaE9_eFH_A/exec"
 
 @app.get("/")
 def home():
     return render_template("index.html")
 
-if __name__ == "__main__":
-    # Fly will set PORT, default to 8080 for local
-    import os
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+@app.post("/submit")
+def submit():
+    try:
+        data = request.get_json(force=True) or {}
+
+        payload = {
+            "name": (data.get("name") or "").strip(),
+            "birthDate": (data.get("birthDate") or "").strip(),
+            "birthTime": (data.get("birthTime") or "").strip(),
+            "weight": (data.get("weight") or "").strip(),
+            "length": (data.get("length") or "").strip(),
+        }
+
+        # basic guardrails
+        if not payload["name"]:
+            return jsonify(success=False, error="Missing name"), 400
+
+        r = requests.post(
+            APPS_SCRIPT_URL,
+            json=payload,
+            timeout=10
+        )
+
+        # Apps Script sometimes returns plain text; handle both
+        try:
+            out = r.json()
+        except Exception:
+            out = {"raw": r.text}
+
+        if r.status_code != 200:
+            return jsonify(success=False, error=f"Apps Script HTTP {r.status_code}", details=out), 502
+
+        if isinstance(out, dict) and out.get("success") is False:
+            return jsonify(success=False, error=out.get("error", "Apps Script error")), 502
+
+        return jsonify(success=True)
+
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 500
