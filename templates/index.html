@@ -398,208 +398,152 @@
     </div>
   </div>
 
-  <script>
-    // === CONFIG ===
-    const ENDPOINT = const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzstyMoUJN_uHKvpeGA0hrPzhIjB4YKjD_kPLJLfbJnbDkba3S6MOwSbUuOaE9_eFH_A/exec";
- // <-- paste your /exec URL
-    const SECRET = ""; // optional: set if your Apps Script checks data.secret
+ <script>
+document.addEventListener("DOMContentLoaded", () => {
+  // === CONFIG ===
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbzzstyMoUJN_uHKvpeGA0hrPzhIjB4YKjD_kPLJLfbJnbDkba3S6MOwSbUuOaE9_eFH_A/exec";
+  const SECRET = ""; // optional
 
-    // === UI STATE ===
-    const steps = Array.from(document.querySelectorAll(".qcard"));
-    const bar = document.getElementById("bar");
-    const stepLabel = document.getElementById("stepLabel");
-    const msg = document.getElementById("msg");
-    const nextBtn = document.getElementById("nextBtn");
-    const backBtn = document.getElementById("backBtn");
-    const topStatus = document.getElementById("topStatus");
-    const kbdHint = document.getElementById("kbdHint");
+  // === UI STATE ===
+  const steps = Array.from(document.querySelectorAll(".qcard"));
+  const bar = document.getElementById("bar");
+  const stepLabel = document.getElementById("stepLabel");
+  const msg = document.getElementById("msg");
+  const nextBtn = document.getElementById("nextBtn");
+  const backBtn = document.getElementById("backBtn");
+  const topStatus = document.getElementById("topStatus");
+  const kbdHint = document.getElementById("kbdHint");
 
-    const totalSteps = 5; // questions only (not counting success screen)
-    let idx = 0;
-    let isSubmitting = false;
+  // Inputs
+  const elName = document.getElementById("name");
+  const elBirthDate = document.getElementById("birthDate");
+  const elBirthTime = document.getElementById("birthTime");
+  const elWeight = document.getElementById("weight");
+  const elLength = document.getElementById("length");
 
-    // Inputs
-    const elName = document.getElementById("name");
-    const elBirthDate = document.getElementById("birthDate");
-    const elBirthTime = document.getElementById("birthTime");
-    const elWeight = document.getElementById("weight");
-    const elLength = document.getElementById("length");
+  // Quick sanity guard (so failures are obvious)
+  if (!nextBtn || !elName || steps.length === 0) {
+    console.error("Wiring failed:", { nextBtn, elName, steps: steps.length });
+    return;
+  }
 
-    function setMsg(text, kind = "") {
-      msg.className = "msg" + (kind ? " " + kind : "");
-      msg.textContent = text || "";
+  const totalSteps = 5;
+  let idx = 0;
+  let isSubmitting = false;
+
+  function setMsg(text, kind = "") {
+    msg.className = "msg" + (kind ? " " + kind : "");
+    msg.textContent = text || "";
+  }
+
+  function setProgress() {
+    const shownStep = Math.min(idx + 1, totalSteps);
+    const pct = Math.max(0, Math.min(100, (idx / totalSteps) * 100));
+    bar.style.width = pct + "%";
+    stepLabel.textContent = (idx <= totalSteps - 1) ? `Step ${shownStep}/${totalSteps}` : "Done";
+    topStatus.textContent = (idx <= totalSteps - 1) ? "Not submitted" : "Submitted";
+    if (kbdHint) kbdHint.style.opacity = (idx <= totalSteps - 1) ? "1" : "0";
+  }
+
+  function showStep(newIdx) {
+    steps.forEach(s => s.classList.remove("active"));
+    idx = newIdx;
+    const active = steps.find(s => Number(s.dataset.step) === idx);
+    if (active) active.classList.add("active");
+
+    backBtn.disabled = (idx === 0 || idx > totalSteps - 1 || isSubmitting);
+    nextBtn.disabled = (idx > totalSteps - 1 || isSubmitting);
+    nextBtn.textContent = (idx === totalSteps - 1) ? "Submit" : "Next";
+
+    setProgress();
+    setMsg("");
+
+    setTimeout(() => {
+      if (idx === 0) elName?.focus();
+      if (idx === 1) elBirthDate?.focus();
+      if (idx === 2) elBirthTime?.focus();
+      if (idx === 3) elWeight?.focus();
+      if (idx === 4) elLength?.focus();
+    }, 20);
+  }
+
+  function validateStep(i) {
+    if (i === 0 && !(elName.value || "").trim()) return "Please enter your name.";
+    if (i === 1 && !(elBirthDate.value || "").trim()) return "Please enter a birth date guess.";
+    if (i === 2 && !(elBirthTime.value || "").trim()) return "Please enter a birth time guess.";
+    if (i === 3 && !(elWeight.value || "").trim()) return "Please enter a weight guess.";
+    if (i === 4 && !(elLength.value || "").trim()) return "Please enter a length guess.";
+    return "";
+  }
+
+  function buildPayload() {
+    const payload = {
+      name: (elName.value || "").trim(),
+      birthDate: (elBirthDate.value || "").trim(),
+      birthTime: (elBirthTime.value || "").trim(),
+      weight: (elWeight.value || "").trim(),
+      length: (elLength.value || "").trim()
+    };
+    if (SECRET) payload.secret = SECRET;
+    return payload;
+  }
+
+  async function submit() {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    backBtn.disabled = true;
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Submitting…";
+    setMsg("Sending your guesses…");
+
+    try {
+      const payload = buildPayload();
+
+      // CORS-proof: send request, don't read response
+      await fetch(ENDPOINT, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      setMsg("Submitted. You legend.", "ok");
+      showStep(5);
+    } catch (err) {
+      setMsg(err.message || "Something went wrong.", "error");
+      nextBtn.disabled = false;
+      backBtn.disabled = (idx === 0);
+      nextBtn.textContent = "Submit";
+    } finally {
+      isSubmitting = false;
     }
+  }
 
-    function setProgress() {
-      const shownStep = Math.min(idx + 1, totalSteps);
-      const pct = Math.max(0, Math.min(100, (idx / totalSteps) * 100));
-      bar.style.width = pct + "%";
-      stepLabel.textContent = (idx <= totalSteps - 1) ? `Step ${shownStep}/${totalSteps}` : "Done";
-      topStatus.textContent = (idx <= totalSteps - 1) ? "Not submitted" : "Submitted";
-      kbdHint.style.opacity = (idx <= totalSteps - 1) ? "1" : "0";
+  function next() {
+    const err = validateStep(idx);
+    if (err) return setMsg(err, "error");
+
+    if (idx === totalSteps - 1) submit();
+    else showStep(idx + 1);
+  }
+
+  function back() {
+    if (idx > 0) showStep(idx - 1);
+  }
+
+  nextBtn.addEventListener("click", next);
+  backBtn.addEventListener("click", back);
+
+  document.addEventListener("keydown", (e) => {
+    if (idx > totalSteps - 1) return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      next();
     }
+  });
 
-    function showStep(newIdx) {
-      steps.forEach(s => s.classList.remove("active"));
-      idx = newIdx;
-      const active = steps.find(s => Number(s.dataset.step) === idx);
-      if (active) active.classList.add("active");
-
-      // Buttons
-      backBtn.disabled = (idx === 0 || idx > totalSteps - 1 || isSubmitting);
-      nextBtn.disabled = (idx > totalSteps - 1 || isSubmitting);
-
-      nextBtn.textContent = (idx === totalSteps - 1) ? "Submit" : "Next";
-      setProgress();
-      setMsg("");
-
-      // Focus the relevant input
-      setTimeout(() => {
-        if (idx === 0) elName?.focus();
-        if (idx === 1) elBirthDate?.focus();
-        if (idx === 2) elBirthTime?.focus();
-        if (idx === 3) elWeight?.focus();
-        if (idx === 4) elLength?.focus();
-      }, 20);
-    }
-
-    function normalizeDate(v) {
-      // date input returns YYYY-MM-DD; if blank allow blank
-      return (v || "").trim();
-    }
-
-    function normalizeTime(v) {
-      // time input returns HH:MM; if user typed text, keep as-is
-      return (v || "").trim();
-    }
-
-    function validateStep(i) {
-      // keep it friendly: require name, everything else required (since it’s a guessing form)
-      if (i === 0) {
-        const v = (elName.value || "").trim();
-        if (!v) return "Please enter your name.";
-        return "";
-      }
-      if (i === 1) {
-        const v = normalizeDate(elBirthDate.value);
-        if (!v) return "Please enter a birth date guess.";
-        return "";
-      }
-      if (i === 2) {
-        const v = normalizeTime(elBirthTime.value);
-        if (!v) return "Please enter a birth time guess.";
-        return "";
-      }
-      if (i === 3) {
-        const v = (elWeight.value || "").trim();
-        if (!v) return "Please enter a weight guess.";
-        return "";
-      }
-      if (i === 4) {
-        const v = (elLength.value || "").trim();
-        if (!v) return "Please enter a length guess.";
-        return "";
-      }
-      return "";
-    }
-
-    function buildPayload() {
-      const payload = {
-        name: (elName.value || "").trim(),
-        birthDate: normalizeDate(elBirthDate.value),
-        birthTime: normalizeTime(elBirthTime.value),
-        weight: (elWeight.value || "").trim(),
-        length: (elLength.value || "").trim()
-      };
-      if (SECRET) payload.secret = SECRET;
-      return payload;
-    }
-
-    async function submit() {
-      if (isSubmitting) return;
-      isSubmitting = true;
-      backBtn.disabled = true;
-      nextBtn.disabled = true;
-      nextBtn.textContent = "Submitting…";
-      setMsg("Sending your guesses…", "");
-
-      try {
-        if (!ENDPOINT || ENDPOINT.includes("YOUR_APPS_SCRIPT_WEB_APP_URL_HERE")) {
-          throw new Error("You haven’t set your Apps Script endpoint URL yet.");
-        }
-
-        const payload = buildPayload();
-
-        const res = await fetch(ENDPOINT, {
-  method: "POST",
-  mode: "no-cors",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
+  showStep(0);
 });
-
-// With no-cors, we can't read the response body — but the request was sent.
-setMsg("Submitted. You legend.", "ok");
-showStep(5);
-topStatus.textContent = "Submitted";
-
-
-        // Apps Script sometimes returns 200 with text; handle both
-        const text = await res.text();
-        let data = null;
-        try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
-        if (!res.ok) {
-          throw new Error((data && data.error) ? data.error : ("HTTP " + res.status));
-        }
-        if (data && data.success === false) {
-          throw new Error(data.error || "Submission failed.");
-        }
-
-        setMsg("Submitted. You legend.", "ok");
-        showStep(5); // success screen
-        topStatus.textContent = "Submitted";
-
-      } catch (err) {
-        setMsg(err.message || "Something went wrong.", "error");
-        nextBtn.disabled = false;
-        backBtn.disabled = (idx === 0);
-        nextBtn.textContent = "Submit";
-      } finally {
-        isSubmitting = false;
-      }
-    }
-
-    function next() {
-      if (idx >= totalSteps) return;
-      const err = validateStep(idx);
-      if (err) return setMsg(err, "error");
-
-      if (idx === totalSteps - 1) {
-        submit();
-      } else {
-        showStep(idx + 1);
-      }
-    }
-
-    function back() {
-      if (idx <= 0) return;
-      showStep(idx - 1);
-    }
-
-    nextBtn.addEventListener("click", next);
-    backBtn.addEventListener("click", back);
-
-    // Enter key: advance (Shift+Enter for newline if we ever add textareas)
-    document.addEventListener("keydown", (e) => {
-      if (idx > totalSteps - 1) return; // success screen
-      if (e.key === "Enter") {
-        e.preventDefault();
-        next();
-      }
-    });
-
-    // Init
-    showStep(0);
-  </script>
+</script>
 </body>
 </html>
