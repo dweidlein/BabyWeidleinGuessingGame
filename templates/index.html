@@ -175,6 +175,24 @@
       margin-top: 10px;
     }
 
+    .muted a {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(165,180,252,0.45);
+  background: rgba(165,180,252,0.12);
+  color: var(--indigo2);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.muted a:hover {
+  background: rgba(165,180,252,0.20);
+  border-color: rgba(165,180,252,0.75);
+}
+
+
     input, select {
       width: 100%;
       padding: 12px 12px;
@@ -387,15 +405,34 @@
           </div>
 
           <!-- Success -->
-          <div class="qcard" data-step="5">
-            <div class="big">Submitted <span class="spark">✨</span></div>
-            <div class="muted">
-              Your guesses have been recorded. We look forward to shaming those of you who have clearly never seen a human baby before.
-              <br><br>
-              <strong>“May the odds be ever in your favor!”</strong>
-              <br>
-            </div>
-          </div>
+         <!-- Success -->
+<div class="qcard" data-step="5">
+  <div class="big">Submitted <span class="spark">✨</span></div>
+
+  <div class="muted">
+    Your guesses have been recorded. We look forward to shaming those of you who have clearly never seen a human baby before.
+    <br><br>
+
+    <a href="PASTE_GOOGLE_SHEET_LINK_HERE"
+       target="_blank"
+       rel="noopener noreferrer">
+      See Other Guesses Here
+    </a>
+
+    <br><br>
+
+    <a href="https://theweidening.fly.dev"
+       target="_blank"
+       rel="noopener noreferrer">
+      Return to NAME THAT BABY
+    </a>
+
+    <br><br>
+
+    <strong>“May the odds be ever in your favor!”</strong>
+  </div>
+</div>
+
         </div>
 
         <div class="actions">
