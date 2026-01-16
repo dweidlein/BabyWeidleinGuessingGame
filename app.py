@@ -50,3 +50,5 @@ def submit():
 
     except Exception as e:
         return jsonify(success=False, error=str(e)), 500
+
+    print("SUBMIT HIT v2026-01-15", payload)
