@@ -327,6 +327,12 @@
       padding: 0 10px 14px;
     }
 
+    .step-pill.submitted {
+  border-color: rgba(34, 197, 94, 0.7);
+  background: rgba(34, 197, 94, 0.18);
+  color: #dcfce7;
+}
+
     /* Success screen vibe */
     .big {
       font-size: 1.3rem;
@@ -599,6 +605,9 @@ if (!res.ok || !data.success) {
 }
 
 setMsg("Submitted. You legend.", "ok");
+topStatus.textContent = "Submitted";
+topStatus.classList.add("submitted");
+
 showStep(5);
 
     } catch (err) {
