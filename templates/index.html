@@ -62,6 +62,10 @@
       font-style: italic;
     }
 
+    a { color: var(--indigo2); }
+    a:hover { color: var(--indigo); }
+
+
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -323,6 +327,20 @@
 
       <div class="content">
         <div class="qwrap" id="qwrap">
+          
+<!-- Welcome -->
+<div class="qcard active" data-step="-1">
+  <div class="qtitle">Guess Baby Weidlein's Stats!</div>
+  <div class="qdesc">
+    Points are assigned based on how close you get to the real #s once Baby Weidlein is born.
+    The person with the most points will win <strong>10% of the NAME GAME</strong>
+    (<a href="https://theweidening.fly.dev" target="_blank" rel="noopener noreferrer">theweidening.fly.dev</a>).
+    <br><br>
+    <strong>Make your entry now!</strong>
+  </div>
+</div>
+
+          
           <!-- Step 1 -->
           <div class="qcard active" data-step="0">
             <div class="qtitle">1) Your name</div>
@@ -425,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const totalSteps = 5;
-  let idx = 0;
+  let idx = -1;
   let isSubmitting = false;
 
   function setMsg(text, kind = "") {
@@ -434,10 +452,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function setProgress() {
-    const shownStep = Math.min(idx + 1, totalSteps);
-    const pct = Math.max(0, Math.min(100, (idx / totalSteps) * 100));
+    const shownStep = (idx < 0) ? 0 : Math.min(idx + 1, totalSteps);
+    const pct = (idx < 0) ? 0 : Math.max(0, Math.min(100, (idx / totalSteps) * 100));
     bar.style.width = pct + "%";
-    stepLabel.textContent = (idx <= totalSteps - 1) ? `Step ${shownStep}/${totalSteps}` : "Done";
+    stepLabel.textContent = (idx < 0) ? `Welcome` : (idx <= totalSteps - 1) ? `Step ${shownStep}/${totalSteps}` : "Done";
     topStatus.textContent = (idx <= totalSteps - 1) ? "Not submitted" : "Submitted";
     if (kbdHint) kbdHint.style.opacity = (idx <= totalSteps - 1) ? "1" : "0";
   }
@@ -448,9 +466,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const active = steps.find(s => Number(s.dataset.step) === idx);
     if (active) active.classList.add("active");
 
-    backBtn.disabled = (idx === 0 || idx > totalSteps - 1 || isSubmitting);
+    backBtn.disabled = (idx <= 0 || idx > totalSteps - 1 || isSubmitting);
     nextBtn.disabled = (idx > totalSteps - 1 || isSubmitting);
-    nextBtn.textContent = (idx === totalSteps - 1) ? "Submit" : "Next";
+    if (idx === -1) nextBtn.textContent = "Start";
+    else nextBtn.textContent = (idx === totalSteps - 1) ? "Submit" : "Next";
+
 
     setProgress();
     setMsg("");
@@ -546,7 +566,7 @@ showStep(5);
     }
   });
 
-  showStep(0);
+  showStep(-1);
 });
 </script>
 </body>
