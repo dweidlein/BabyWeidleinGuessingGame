@@ -20,7 +20,8 @@ def submit():
             "birthDate": (data.get("birthDate") or "").strip(),
             "birthTime": (data.get("birthTime") or "").strip(),
             "weight": (data.get("weight") or "").strip(),
-            "length": (data.get("length") or "").strip(),
+            "babyLength": (data.get("babyLength") or "").strip(),
+
         }
 
         # basic guardrails
