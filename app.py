@@ -29,7 +29,7 @@ def submit():
 
         r = requests.post(
             APPS_SCRIPT_URL,
-            json=payload,
+            data=payload,
             timeout=10
         )
 
