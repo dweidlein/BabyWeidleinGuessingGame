@@ -175,6 +175,31 @@
       margin-top: 10px;
     }
 
+    .success-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.success-links a {
+  flex: 1 1 220px; /* grow, shrink, minimum width */
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(165,180,252,0.45);
+  background: rgba(165,180,252,0.12);
+  color: var(--indigo2);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.success-links a:hover {
+  background: rgba(165,180,252,0.20);
+  border-color: rgba(165,180,252,0.75);
+}
+
+
     .muted a {
   display: inline-block;
   margin-top: 6px;
@@ -351,7 +376,7 @@
   <div class="qtitle">It's Not Sports Betting...It's Baby Betting</div>
   <div class="qdesc"><br>
     Points are assigned based on how close you get to the real #s once Baby Weidlein is born. <br>
-    The person with the most points will win 10% of the contributions to <strong> (<a href="https://theweidening.fly.dev" target="_blank" rel="noopener noreferrer">NAME THAT BABY</a>)</strong>
+    The person with the most points will win 10% of the contributions to <strong> <a href="https://theweidening.fly.dev" target="_blank" rel="noopener noreferrer">NAME THAT BABY</a></strong>
     
     <br><br>
     <strong>Make your entry now!</strong>
@@ -413,19 +438,20 @@
     Your guesses have been recorded. We look forward to shaming those of you who have clearly never seen a human baby before.
     <br><br>
 
-    <a href="PASTE_GOOGLE_SHEET_LINK_HERE"
-       target="_blank"
-       rel="noopener noreferrer">
-      See Other Guesses Here
-    </a>
+    <div class="success-links">
+  <a href="https://docs.google.com/spreadsheets/d/1SsS9TDptrG4UysDj8sCRSiPExGp_fMMsskWDGS3pH2Y/edit?usp=sharing"
+     target="_blank"
+     rel="noopener noreferrer">
+    See Other Guesses
+  </a>
 
-    <br><br>
+  <a href="https://theweidening.fly.dev"
+     target="_blank"
+     rel="noopener noreferrer">
+    Return to NAME THAT BABY
+  </a>
+</div>
 
-    <a href="https://theweidening.fly.dev"
-       target="_blank"
-       rel="noopener noreferrer">
-      Return to NAME THAT BABY
-    </a>
 
     <br><br>
 
